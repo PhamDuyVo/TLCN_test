@@ -1,0 +1,93 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --cgv-red: #e71a0f;
+    --cgv-red-dark: #b81007;
+    --cgv-cream: #fdfcf0;
+    --cgv-dark-bg: #121212;
+    --cgv-card-bg: #1e1e1e;
+    --cgv-gold: #e0a838;
+  }
+
+  body {
+    background-color: #121212;
+    color: #f3f4f6;
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    margin: 0;
+    padding: 0;
+  }
+}
+
+/* CGV Retro Marquee Header Title */
+.cgv-title-section {
+  position: relative;
+  text-align: center;
+  margin: 2rem 0;
+}
+
+.cgv-title-section::before,
+.cgv-title-section::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  width: 30%;
+  height: 2px;
+  background: linear-gradient(to right, transparent, #e71a0f, transparent);
+}
+
+.cgv-title-section::before {
+  left: 0;
+}
+
+.cgv-title-section::after {
+  right: 0;
+}
+
+/* Badge Độ tuổi CGV */
+.badge-age-P {
+  background-color: #2ecc71;
+  color: #ffffff;
+}
+
+.badge-age-K {
+  background-color: #3498db;
+  color: #ffffff;
+}
+
+.badge-age-C13,
+.badge-age-T13 {
+  background-color: #e67e22;
+  color: #ffffff;
+}
+
+.badge-age-C16,
+.badge-age-T16 {
+  background-color: #d35400;
+  color: #ffffff;
+}
+
+.badge-age-C18,
+.badge-age-T18 {
+  background-color: #e71a0f;
+  color: #ffffff;
+}
+
+/* Scrollbar mượt mà */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #18181b;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #3f3f46;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #e71a0f;
+}
