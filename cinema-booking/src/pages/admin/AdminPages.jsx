@@ -16,7 +16,7 @@ export const DashboardPage = () => (
     <div className="flex justify-between items-center">
       <h1 className="text-2xl font-black text-white">DASHBOARD QUẢN TRỊ DOANH THU</h1>
       <span className="text-xs bg-zinc-800 border border-zinc-700 px-3 py-1 rounded text-zinc-300">
-        Hệ thống Rạp CGV Cinema
+        Hệ thống Rạp UTE Cinema
       </span>
     </div>
 

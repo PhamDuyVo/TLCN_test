@@ -23,7 +23,7 @@ export const Footer = () => {
       {/* 2. Footer Info Columns */}
       <div className="max-w-7xl mx-auto px-4 py-10 grid grid-cols-1 md:grid-cols-4 gap-8">
         <div>
-          <h4 className="font-bold text-sm text-zinc-200 uppercase mb-3 text-red-500">Giới thiệu CGV Cinema</h4>
+          <h4 className="font-bold text-sm text-zinc-200 uppercase mb-3 text-red-500">Giới thiệu UTE Cinema</h4>
           <ul className="space-y-2 text-zinc-400">
             <li><a href="#" className="hover:text-white">Về Chúng Tôi</a></li>
             <li><a href="#" className="hover:text-white">Hệ Thống Rạp Chiếu</a></li>
@@ -49,7 +49,7 @@ export const Footer = () => {
               <Phone className="w-4 h-4 text-red-500" /> Hotline: 1900 6017
             </p>
             <p className="flex items-center gap-2">
-              <Mail className="w-4 h-4 text-red-500" /> hoidap@cgv.vn
+              <Mail className="w-4 h-4 text-red-500" /> hoidap@utecinema.vn
             </p>
             <p className="text-zinc-500 text-[11px] mt-2">Giờ làm việc: 8:00 - 22:00 (Tất cả các ngày)</p>
           </div>
@@ -69,7 +69,7 @@ export const Footer = () => {
 
       {/* 3. Bottom Copyright Bar */}
       <div className="bg-[#050505] border-t border-[#181818] py-4 text-center text-zinc-600 text-[11px]">
-        <p>© 2026 CGV Cinema System - Đồ án Tốt nghiệp Nhóm 5. Bảo lưu mọi quyền.</p>
+        <p>© 2026 UTE Cinema System - Đồ án Tốt nghiệp Nhóm 5. Bảo lưu mọi quyền.</p>
       </div>
     </footer>
   );

@@ -4,9 +4,9 @@ import { formatCurrency } from '../../utils/format';
 import { CreditCard, QrCode, CheckCircle, Tag, ShoppingBag, ArrowRight } from 'lucide-react';
 
 const MOCK_COMBOS = [
-  { id: 1, name: 'CGV Combo 1', desc: '1 Bắp ngọt (L) + 1 Nước ngọt (L)', price: 89000 },
-  { id: 2, name: 'CGV Couple Combo', desc: '1 Bắp lớn (L) + 2 Nước ngọt (L)', price: 119000 },
-  { id: 3, name: 'CGV Family Snack', desc: '1 Bắp phô mai + 2 Nước + 1 Snack Khoai', price: 149000 },
+  { id: 1, name: 'UTE Combo 1', desc: '1 Bắp ngọt (L) + 1 Nước ngọt (L)', price: 89000 },
+  { id: 2, name: 'UTE Couple Combo', desc: '1 Bắp lớn (L) + 2 Nước ngọt (L)', price: 119000 },
+  { id: 3, name: 'UTE Family Snack', desc: '1 Bắp phô mai + 2 Nước + 1 Snack Khoai', price: 149000 },
 ];
 
 export const CheckoutPage = () => {
@@ -162,7 +162,7 @@ export const CheckoutPage = () => {
               </div>
               <div className="flex justify-between">
                 <span className="text-zinc-500">Rạp:</span>
-                <span>CGV Aeon Tân Phú</span>
+                <span>UTE Cinema Thủ Đức</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-zinc-500">Suất chiếu:</span>

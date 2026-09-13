@@ -4,7 +4,7 @@ import { CheckCircle2, Ticket, Download, Home, Calendar, MapPin } from 'lucide-r
 
 export const BookingSuccessPage = () => {
   const navigate = useNavigate();
-  const mockBookingCode = 'CGV-2026-889922';
+  const mockBookingCode = 'UTE-2026-889922';
   const qrPayload = JSON.stringify({ ticketCode: mockBookingCode, showtimeId: 102, seats: ['F5', 'F6'] });
 
   return (
@@ -17,7 +17,7 @@ export const BookingSuccessPage = () => {
         </div>
 
         <h1 className="text-2xl font-black text-white tracking-wide">ĐẶT VÉ THÀNH CÔNG!</h1>
-        <p className="text-xs text-zinc-400 mt-1">Cảm ơn bạn đã lựa chọn dịch vụ bán vé xem phim CGV Cinema.</p>
+        <p className="text-xs text-zinc-400 mt-1">Cảm ơn bạn đã lựa chọn dịch vụ bán vé xem phim UTE Cinema.</p>
 
         {/* E-Ticket Card Layout */}
         <div className="mt-8 bg-zinc-900 border border-zinc-800 rounded-xl p-6 text-left relative">
@@ -34,7 +34,7 @@ export const BookingSuccessPage = () => {
           <div className="space-y-2 text-xs text-zinc-300 mb-6">
             <h3 className="font-black text-white text-base">AVATAR: DÒNG DÒNG NƯỚC</h3>
             <p className="flex items-center gap-1.5 text-zinc-400">
-              <MapPin className="w-3.5 h-3.5 text-red-500" /> CGV Aeon Tân Phú • Phòng 2 (IMAX)
+              <MapPin className="w-3.5 h-3.5 text-red-500" /> UTE Cinema Thủ Đức • Phòng 2 (IMAX)
             </p>
             <p className="flex items-center gap-1.5 text-zinc-400">
               <Calendar className="w-3.5 h-3.5 text-red-500" /> 13:15 - Ngày 10/09/2026

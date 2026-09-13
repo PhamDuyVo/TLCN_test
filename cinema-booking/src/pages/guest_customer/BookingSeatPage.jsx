@@ -4,7 +4,7 @@ import useCountdown from '../../hooks/useCountdown';
 import { formatCurrency } from '../../utils/format';
 import { Clock, ShieldAlert, ArrowRight } from 'lucide-react';
 
-// Giả lập ma trận 8 hàng x 10 cột ghế phòng chiếu CGV
+// Giả lập ma trận 8 hàng x 10 cột ghế phòng chiếu UTE Cinema
 const ROWS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
 const COLS = Array.from({ length: 10 }, (_, i) => i + 1);
 
@@ -50,7 +50,7 @@ export const BookingSeatPage = () => {
           <div>
             <h1 className="text-xl font-black text-white">AVATAR: DÒNG DÒNG NƯỚC</h1>
             <p className="text-xs text-zinc-400 mt-0.5">
-              CGV Aeon Tân Phú • Phòng 2 (IMAX) • 13:15, 10/09/2026
+              UTE Cinema Thủ Đức • Phòng 2 (IMAX) • 13:15, 10/09/2026
             </p>
           </div>
 
@@ -142,7 +142,7 @@ export const BookingSeatPage = () => {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-zinc-500">Rạp chiếu:</span>
-                  <span>CGV Aeon Tân Phú</span>
+                  <span>UTE Cinema Thủ Đức</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-zinc-500">Suất chiếu:</span>
