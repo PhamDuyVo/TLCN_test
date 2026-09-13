@@ -7,7 +7,7 @@ export const StaffLoginPage = () => (
   <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center p-4 text-zinc-100">
     <div className="max-w-md w-full bg-[#141414] border border-zinc-800 rounded-xl p-8 shadow-2xl">
       <div className="text-center mb-6">
-        <span className="bg-[#e71a0f] text-white font-black text-2xl px-3 py-1 rounded inline-block">CGV</span>
+        <span className="bg-[#e71a0f] text-white font-black text-2xl px-3 py-1 rounded inline-block">UTE</span>
         <h1 className="text-xl font-bold text-white mt-3">ĐĂNG NHẬP CA TRỰC NHÂN VIÊN</h1>
         <p className="text-xs text-zinc-400 mt-1">Cổng POS & Soát vé QR dành cho Nhân viên tại rạp</p>
       </div>
@@ -16,7 +16,7 @@ export const StaffLoginPage = () => (
           <label className="block text-xs font-bold text-zinc-400 mb-1">MÃ NHÂN VIÊN / EMAIL</label>
           <input
             type="text"
-            placeholder="VD: staff01@cgv.vn"
+            placeholder="VD: staff01@utecinema.vn"
             className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-red-500"
           />
         </div>
@@ -52,7 +52,7 @@ export const PosBookingPage = () => {
           <h1 className="text-xl font-bold text-white flex items-center gap-2">
             <Ticket className="w-5 h-5 text-red-500" /> POS BÁN VÉ TRỰC TIẾP TẠI QUẦY
           </h1>
-          <p className="text-xs text-zinc-400">Ca làm việc: Sáng (Quầy 02 - CGV Aeon Tân Phú)</p>
+          <p className="text-xs text-zinc-400">Ca làm việc: Sáng (Quầy 02 - UTE Cinema Thủ Đức)</p>
         </div>
         <div className="flex gap-3">
           <button className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs px-4 py-2 rounded-lg flex items-center gap-1.5 cursor-pointer">
@@ -177,7 +177,7 @@ export const QrCheckInPage = () => {
                   VÉ HỢP LỆ (CHECK-IN SUCCESS)
                 </span>
                 <h3 className="font-bold text-white text-base mt-3">Avatar: Dòng Dòng Nước</h3>
-                <p className="text-xs text-zinc-300 mt-1">CGV Aeon Tân Phú • Phòng 2 (IMAX)</p>
+                <p className="text-xs text-zinc-300 mt-1">UTE Cinema Thủ Đức • Phòng 2 (IMAX)</p>
                 <p className="text-xs text-amber-400 font-bold mt-1">Ghế: F5, F6</p>
                 <span className="text-[10px] text-zinc-500 mt-3 block">Thời gian: {scanResult.time}</span>
               </div>

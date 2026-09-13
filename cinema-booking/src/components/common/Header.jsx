@@ -49,9 +49,9 @@ export const Header = () => {
               </div>
             ) : (
               <div className="flex items-center gap-2">
-                <Link to="/login" className="hover:text-white transition">Đăng Nhập</Link>
+                <Link to="/login?mode=login" className="hover:text-white transition">Đăng Nhập</Link>
                 <span className="text-zinc-600">/</span>
-                <Link to="/login" className="hover:text-white transition">Đăng Ký</Link>
+                <Link to="/login?mode=register" className="hover:text-white transition">Đăng Ký</Link>
               </div>
             )}
           </div>
@@ -60,10 +60,10 @@ export const Header = () => {
 
       {/* 2. Main Navigation Bar */}
       <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
-        {/* Brand Logo CGV Style */}
+        {/* Brand Logo UTE Style */}
         <Link to="/" className="flex items-center gap-3 group">
           <div className="bg-[#e71a0f] text-white p-2 rounded-lg font-black text-2xl tracking-tighter shadow-md group-hover:bg-[#c41200] transition">
-            CGV
+            UTE
           </div>
           <div className="flex flex-col">
             <span className="font-extrabold text-xl tracking-wider text-white">CINEMA</span>

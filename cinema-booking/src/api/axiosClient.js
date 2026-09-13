@@ -1,19 +1,17 @@
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1';
-
 const axiosClient = axios.create({
-  baseURL: API_BASE_URL,
+  baseURL: import.meta.env.VITE_API_URL || '/api',
   headers: {
     'Content-Type': 'application/json',
   },
-  timeout: 15000,
+  timeout: 10000,
 });
 
-// Request Interceptor: Tự động thêm Bearer token
+// Interceptor cho Request: Đính kèm JWT Access Token nếu có trong localStorage
 axiosClient.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('accessToken');
+    const token = localStorage.getItem('access_token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -22,16 +20,32 @@ axiosClient.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Response Interceptor: Xử lý lỗi tập trung & refresh token nếu 401
+// Interceptor cho Response: Xử lý tự động Refresh Token khi Access Token hết hạn (401)
 axiosClient.interceptors.response.use(
   (response) => response.data,
   async (error) => {
     const originalRequest = error.config;
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
-      // Có thể xử lý refresh token tự động ở đây nếu cần
+      try {
+        const refreshToken = localStorage.getItem('refresh_token');
+        if (refreshToken) {
+          const res = await axios.post('/api/auth/refresh-token', { refreshToken });
+          if (res.data && res.data.success && res.data.data?.accessToken) {
+            const newAccessToken = res.data.data.accessToken;
+            localStorage.setItem('access_token', newAccessToken);
+            originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+            return axiosClient(originalRequest);
+          }
+        }
+      } catch (refreshErr) {
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('refresh_token');
+        localStorage.removeItem('user_info');
+        window.location.href = '/login';
+      }
     }
-    return Promise.reject(error.response?.data || error.message);
+    return Promise.reject(error);
   }
 );
 

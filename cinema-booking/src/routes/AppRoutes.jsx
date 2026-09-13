@@ -5,16 +5,17 @@ import AdminLayout from '../layouts/AdminLayout';
 import ProtectedRoute from './ProtectedRoute';
 import { ROLES } from '../utils/constants';
 
+import HomePage from '../pages/guest_customer/HomePage';
+import MovieDetailPage from '../pages/guest_customer/MovieDetailPage';
+import BookingSeatPage from '../pages/guest_customer/BookingSeatPage';
+import CheckoutPage from '../pages/guest_customer/CheckoutPage';
+import BookingSuccessPage from '../pages/guest_customer/BookingSuccessPage';
+import AuthPages from '../pages/guest_customer/AuthPages';
+
+import UserProfilePage from '../pages/guest_customer/UserProfilePage';
+
 import {
-  HomePage,
-  MoviesPage,
-  MovieDetailPage,
-  BookingSeatPage,
-  CheckoutPage,
-  BookingSuccessPage,
-  ProfilePage,
   TicketHistoryPage,
-  LoginPage,
 } from '../pages/guest_customer/CustomerPages';
 
 import {
@@ -40,16 +41,17 @@ export const AppRoutes = () => {
       {/* 1. Customer & Guest Routes */}
       <Route element={<CustomerLayout />}>
         <Route path="/" element={<HomePage />} />
-        <Route path="/movies" element={<MoviesPage />} />
+        <Route path="/movies" element={<HomePage />} />
         <Route path="/movies/:id" element={<MovieDetailPage />} />
-        <Route path="/login" element={<LoginPage />} />
+        <Route path="/login" element={<AuthPages />} />
+        <Route path="/register" element={<AuthPages />} />
 
         {/* Protected Customer Routes */}
         <Route element={<ProtectedRoute allowedRoles={[ROLES.CUSTOMER]} />}>
           <Route path="/booking/:showtimeId" element={<BookingSeatPage />} />
           <Route path="/checkout" element={<CheckoutPage />} />
           <Route path="/booking-success" element={<BookingSuccessPage />} />
-          <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/profile" element={<UserProfilePage />} />
           <Route path="/my-tickets" element={<TicketHistoryPage />} />
         </Route>
       </Route>
