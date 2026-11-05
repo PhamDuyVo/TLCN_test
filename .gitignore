@@ -1,0 +1,41 @@
+# Node / Frontend
+node_modules/
+dist/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Java / Spring Boot
+target/
+*.class
+*.jar
+*.war
+.mvn/
+*.log
+
+# IDE & Editor
+.idea/
+*.iml
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.DS_Store
+
+# Local Environment & Backups
+.env.local
+.env.*.local
+cinema-server-node-backup/
+
+
+# Credentials and local verification output
+.env
+.env.*
+!.env.example
+.local/
+
+# Keep internal planning notes out of the public repository
+CONG_VIEC_NGHIEM_DUY.md
+KE_HOACH_PHAN_CONG_VA_COMMIT.md

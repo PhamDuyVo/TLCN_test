@@ -41,11 +41,6 @@ export const AuthPages = () => {
   const [newPassword, setNewPassword] = useState('');
   const [confirmNewPassword, setConfirmNewPassword] = useState('');
 
-  // Google Login Quick Select Modal State
-  const [isGoogleModalOpen, setIsGoogleModalOpen] = useState(false);
-  const [customGoogleEmail, setCustomGoogleEmail] = useState('');
-  const [customGoogleName, setCustomGoogleName] = useState('');
-
   // Status & Feedback
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
@@ -98,7 +93,7 @@ export const AuthPages = () => {
     try {
       const res = await login({ email: loginEmail, password: loginPassword });
       if (res.success) {
-        setSuccessMsg(`🎉 Đăng nhập thành công! Chào mừng ${res.data.user.full_name || 'bạn'} trở lại UTE Cinema!`);
+        setSuccessMsg(`🎉 Đăng nhập thành công! Chào mừng ${res.data.user.fullName || res.data.user.full_name || 'bạn'} trở lại UTE Cinema!`);
         setTimeout(() => navigate('/'), 1200);
       } else {
         setErrorMsg(res.message || 'Đăng nhập thất bại. Vui lòng kiểm tra lại!');
@@ -128,7 +123,7 @@ export const AuthPages = () => {
 
     try {
       const res = await registerInit({
-        full_name: regFullName,
+        fullName: regFullName,
         email: regEmail,
         phone: regPhone,
         password: regPassword,
@@ -160,7 +155,7 @@ export const AuthPages = () => {
     setLoading(true);
     try {
       const res = await registerInit({
-        full_name: regFullName,
+        fullName: regFullName,
         email: regEmail,
         phone: regPhone,
         password: regPassword,
@@ -197,7 +192,10 @@ export const AuthPages = () => {
     try {
       const res = await verifyRegistrationOtp({
         email: regEmail,
-        otp_code: regOtpCode,
+        fullName: regFullName,
+        phone: regPhone,
+        password: regPassword,
+        otpCode: regOtpCode,
       });
 
       if (res.success) {
@@ -243,20 +241,10 @@ export const AuthPages = () => {
         setErrorMsg('');
         setSuccessMsg('⏳ Đang xác thực tài khoản Google...');
 
-        const googleRes = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-          headers: { Authorization: `Bearer ${tokenResponse.access_token}` },
-        });
-        const googleProfile = await googleRes.json();
-
-        const res = await googleAuth({
-          google_id: googleProfile.sub,
-          email: googleProfile.email,
-          full_name: googleProfile.name,
-          avatar_url: googleProfile.picture,
-        });
+        const res = await googleAuth({ token: tokenResponse.access_token });
 
         if (res.success) {
-          setSuccessMsg(`🎉 Đăng nhập Google thành công! Chào mừng ${googleProfile.name || googleProfile.email} trở lại UTE Cinema!`);
+          setSuccessMsg(`🎉 Đăng nhập Google thành công! Chào mừng ${res.data.user.fullName || res.data.user.email} trở lại UTE Cinema!`);
           setTimeout(() => navigate('/'), 1200);
         }
       } catch (err) {
@@ -265,39 +253,17 @@ export const AuthPages = () => {
         setLoading(false);
       }
     },
-    onError: (errorResponse) => {
-      console.error('Google OAuth Popup Error:', errorResponse);
+    onError: () => {
       setErrorMsg('Đăng nhập Google bị hủy hoặc gặp lỗi xác thực!');
     },
   });
 
-  const handleGoogleAuthAction = (googleUserObj) => {
-    if (googleUserObj && googleUserObj.email) {
-      // Cho chọn trực tiếp từ modal nếu cần
-      googleAuth(googleUserObj).then((res) => {
-        if (res.success) {
-          setSuccessMsg(`🎉 Đăng nhập Google thành công! (${res.data.user.email})`);
-          setIsGoogleModalOpen(false);
-          setTimeout(() => navigate('/'), 1200);
-        }
-      }).catch(err => setErrorMsg(err.message));
-      return;
-    }
-
+  const handleGoogleAuthAction = () => {
     // Kích hoạt cửa sổ Popup chính thức của Google (accounts.google.com/v3/signin/accountchooser)
     try {
       triggerGoogleOAuthPopup();
-    } catch (e) {
-      // Fallback mở popup window Google Account Chooser
-      const width = 500;
-      const height = 650;
-      const left = window.screenX + (window.outerWidth - width) / 2;
-      const top = window.screenY + (window.outerHeight - height) / 2;
-      window.open(
-        'https://accounts.google.com/v3/signin/accountchooser?continue=https%3A%2F%2Faccounts.google.com%2F',
-        'GoogleAccountChooser',
-        `width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=yes,status=yes`
-      );
+    } catch {
+      setErrorMsg('Không thể mở đăng nhập Google. Vui lòng thử lại hoặc đăng nhập bằng email.');
     }
   };
 
@@ -342,8 +308,8 @@ export const AuthPages = () => {
     try {
       const res = await resetPassword({
         email: forgotEmail,
-        otp_code: otpCode,
-        new_password: newPassword,
+        otpCode: otpCode,
+        newPassword: newPassword,
       });
 
       if (res.success) {
@@ -873,182 +839,6 @@ export const AuthPages = () => {
         </div>
       )}
 
-      {/* ================= MODAL GOOGLE AUTH ACCOUNT CHOOSER (CHUẨN TÀI KHOẢN GOOGLE) ================= */}
-      {isGoogleModalOpen && (
-        <div className="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4">
-          <div className="bg-[#1e1e1e] border border-zinc-700/80 rounded-2xl w-full max-w-md p-6 relative shadow-2xl animate-fade-in text-zinc-100">
-            <button
-              type="button"
-              onClick={() => setIsGoogleModalOpen(false)}
-              className="absolute top-4 right-4 text-zinc-400 hover:text-white p-1.5 rounded-lg hover:bg-zinc-800 transition cursor-pointer"
-            >
-              <X className="w-5 h-5" />
-            </button>
-
-            {/* Google Header */}
-            <div className="text-center mb-6">
-              <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center mx-auto mb-3 shadow-md">
-                <svg className="w-6 h-6" viewBox="0 0 24 24">
-                  <path
-                    fill="#4285F4"
-                    d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"
-                  />
-                  <path
-                    fill="#34A853"
-                    d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.29v3.15C3.26 21.3 7.31 24 12 24z"
-                  />
-                  <path
-                    fill="#FBBC05"
-                    d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.29C.47 8.21 0 10.05 0 12s.47 3.79 1.29 5.42l3.99-3.15z"
-                  />
-                  <path
-                    fill="#EA4335"
-                    d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.31 0 3.26 2.7 1.29 6.58l3.99 3.15c.95-2.83 3.6-4.98 6.72-4.98z"
-                  />
-                </svg>
-              </div>
-              <h3 className="text-xl font-semibold text-white tracking-tight">Chọn một tài khoản</h3>
-              <p className="text-xs text-zinc-400 mt-1">để tiếp tục tới <span className="font-semibold text-red-500">UTE Cinema Việt Nam</span></p>
-            </div>
-
-            {/* Danh sách các Tài khoản Google thực tế của người dùng */}
-            <div className="space-y-2.5 mb-5 max-h-72 overflow-y-auto pr-1 custom-scrollbar">
-              {/* Account 1: Vo Pham Duy (23110088@student.hcmute.edu.vn) */}
-              <button
-                type="button"
-                onClick={() =>
-                  handleGoogleAuthAction({
-                    google_id: 'google_id_23110088',
-                    email: '23110088@student.hcmute.edu.vn',
-                    full_name: 'Vo Pham Duy',
-                    avatar_url: 'https://lh3.googleusercontent.com/a/ACg8ocIq9Xz9X_default_user_1',
-                  })
-                }
-                disabled={loading}
-                className="w-full p-3 bg-zinc-900/90 hover:bg-zinc-800/90 border border-zinc-700/60 hover:border-blue-500/60 rounded-xl flex items-center gap-3.5 transition cursor-pointer text-left group"
-              >
-                <div className="w-10 h-10 rounded-full bg-blue-600 font-bold text-white flex items-center justify-center text-sm shadow-md group-hover:scale-105 transition">
-                  V
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-white truncate group-hover:text-blue-400 transition">Vo Pham Duy</p>
-                  <p className="text-xs text-zinc-400 truncate">23110088@student.hcmute.edu.vn</p>
-                </div>
-                <span className="text-[11px] text-zinc-500 font-mono">Đã lưu</span>
-              </button>
-
-              {/* Account 2: Võ Phạm Duy (phamduyvo1303@gmail.com) */}
-              <button
-                type="button"
-                onClick={() =>
-                  handleGoogleAuthAction({
-                    google_id: 'google_id_phamduyvo1303',
-                    email: 'phamduyvo1303@gmail.com',
-                    full_name: 'Võ Phạm Duy',
-                    avatar_url: 'https://lh3.googleusercontent.com/a/ACg8ocIq9Xz9X_default_user_2',
-                  })
-                }
-                disabled={loading}
-                className="w-full p-3 bg-zinc-900/90 hover:bg-zinc-800/90 border border-zinc-700/60 hover:border-purple-500/60 rounded-xl flex items-center gap-3.5 transition cursor-pointer text-left group"
-              >
-                <div className="w-10 h-10 rounded-full bg-purple-600 font-bold text-white flex items-center justify-center text-sm shadow-md group-hover:scale-105 transition">
-                  P
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-white truncate group-hover:text-purple-400 transition">Võ Phạm Duy</p>
-                  <p className="text-xs text-zinc-400 truncate">phamduyvo1303@gmail.com</p>
-                </div>
-                <span className="text-[11px] text-zinc-500 font-mono">Đã lưu</span>
-              </button>
-
-              {/* Account 3: Võ Phạm duy (vophamduy.13032005@gmail.com) */}
-              <button
-                type="button"
-                onClick={() =>
-                  handleGoogleAuthAction({
-                    google_id: 'google_id_vophamduy13032005',
-                    email: 'vophamduy.13032005@gmail.com',
-                    full_name: 'Võ Phạm duy',
-                    avatar_url: 'https://lh3.googleusercontent.com/a/ACg8ocIq9Xz9X_default_user_3',
-                  })
-                }
-                disabled={loading}
-                className="w-full p-3 bg-zinc-900/90 hover:bg-zinc-800/90 border border-zinc-700/60 hover:border-teal-500/60 rounded-xl flex items-center gap-3.5 transition cursor-pointer text-left group"
-              >
-                <div className="w-10 h-10 rounded-full bg-teal-600 font-bold text-white flex items-center justify-center text-sm shadow-md group-hover:scale-105 transition">
-                  P
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-white truncate group-hover:text-teal-400 transition">Võ Phạm duy</p>
-                  <p className="text-xs text-zinc-400 truncate">vophamduy.13032005@gmail.com</p>
-                </div>
-                <span className="text-[11px] text-zinc-500 font-mono">Đã lưu</span>
-              </button>
-
-              {/* Account 4: Nghiem Phan Vinh (23110129@student.hcmute.edu.vn) */}
-              <button
-                type="button"
-                onClick={() =>
-                  handleGoogleAuthAction({
-                    google_id: 'google_id_23110129',
-                    email: '23110129@student.hcmute.edu.vn',
-                    full_name: 'Nghiem Phan Vinh',
-                    avatar_url: 'https://lh3.googleusercontent.com/a/ACg8ocIq9Xz9X_default_user_4',
-                  })
-                }
-                disabled={loading}
-                className="w-full p-3 bg-zinc-900/90 hover:bg-zinc-800/90 border border-zinc-700/60 hover:border-emerald-500/60 rounded-xl flex items-center gap-3.5 transition cursor-pointer text-left group"
-              >
-                <div className="w-10 h-10 rounded-full bg-emerald-600 font-bold text-white flex items-center justify-center text-sm shadow-md group-hover:scale-105 transition">
-                  P
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-white truncate group-hover:text-emerald-400 transition">Nghiem Phan Vinh</p>
-                  <p className="text-xs text-zinc-400 truncate">23110129@student.hcmute.edu.vn</p>
-                </div>
-                <span className="text-[11px] text-zinc-500 font-mono">Đã lưu</span>
-              </button>
-            </div>
-
-            {/* Tùy chọn Nhập một Tài khoản Google Khác */}
-            <div className="border-t border-zinc-800 pt-4 space-y-3">
-              <p className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Hoặc đăng nhập tài khoản Google khác:</p>
-              
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                <input
-                  type="email"
-                  value={customGoogleEmail}
-                  onChange={(e) => setCustomGoogleEmail(e.target.value)}
-                  placeholder="email.google@gmail.com"
-                  className="bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-blue-500"
-                />
-                <input
-                  type="text"
-                  value={customGoogleName}
-                  onChange={(e) => setCustomGoogleName(e.target.value)}
-                  placeholder="Họ và Tên Google"
-                  className="bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-blue-500"
-                />
-              </div>
-
-              <button
-                type="button"
-                onClick={() => handleGoogleAuthAction(null)}
-                disabled={loading}
-                className="w-full py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs rounded-lg shadow-md transition cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50"
-              >
-                {loading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <User className="w-3.5 h-3.5" />}
-                {loading ? 'ĐANG ĐĂNG NHẬP GOOGLE...' : 'ĐĂNG NHẬP VỚI TÀI KHOẢN TÙY CHỌN NÀY'}
-              </button>
-            </div>
-
-            {/* Google OAuth Footer Terms */}
-            <p className="text-[11px] text-zinc-500 text-center mt-5 leading-relaxed">
-              Để tiếp tục, Google sẽ chia sẻ tên, địa chỉ email và ảnh hồ sơ của bạn với UTE Cinema. Xem Điều khoản dịch vụ và Chính sách quyền riêng tư.
-            </p>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

@@ -20,32 +20,47 @@ axiosClient.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Interceptor cho Response: Xử lý tự động Refresh Token khi Access Token hết hạn (401)
+// Use the same API origin for refresh; concurrent failures share one refresh request.
+let refreshing;
+const expireSession = () => {
+  for (const key of ['access_token', 'refresh_token', 'user_info']) localStorage.removeItem(key);
+  window.dispatchEvent(new Event('auth:expired'));
+};
 axiosClient.interceptors.response.use(
   (response) => response.data,
   async (error) => {
     const originalRequest = error.config;
-    if (error.response?.status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true;
-      try {
-        const refreshToken = localStorage.getItem('refresh_token');
-        if (refreshToken) {
-          const res = await axios.post('/api/auth/refresh-token', { refreshToken });
-          if (res.data && res.data.success && res.data.data?.accessToken) {
-            const newAccessToken = res.data.data.accessToken;
-            localStorage.setItem('access_token', newAccessToken);
-            originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
-            return axiosClient(originalRequest);
-          }
-        }
-      } catch (refreshErr) {
-        localStorage.removeItem('access_token');
-        localStorage.removeItem('refresh_token');
-        localStorage.removeItem('user_info');
-        window.location.href = '/login';
-      }
+    const publicAuth = /\/auth\/(login|google|register|register-init|verify-registration-otp|forgot-password|reset-password|refresh-token)(?:$|\?)/.test(originalRequest?.url || '');
+    if (error.response?.status !== 401 || !originalRequest || publicAuth) return Promise.reject(error);
+    if (originalRequest._retry) {
+      expireSession();
+      return Promise.reject(error);
     }
-    return Promise.reject(error);
+    originalRequest._retry = true;
+    const refreshToken = localStorage.getItem('refresh_token');
+    if (!refreshToken) {
+      expireSession();
+      return Promise.reject(error);
+    }
+    try {
+      if (!refreshing) {
+        refreshing = axios.post(`${axiosClient.defaults.baseURL.replace(/\/$/, '')}/auth/refresh-token`,
+          { refreshToken }, { timeout: 10000 }).then((res) => {
+          const token = res.data?.data?.accessToken;
+          if (!res.data?.success || !token) throw new Error('Invalid refresh response');
+          // A logout during refresh must not recreate the session.
+          if (localStorage.getItem('refresh_token') !== refreshToken) throw new Error('Session changed');
+          localStorage.setItem('access_token', token);
+          return token;
+        }).finally(() => { refreshing = null; });
+      }
+      const token = await refreshing;
+      originalRequest.headers.Authorization = `Bearer ${token}`;
+      return axiosClient(originalRequest);
+    } catch {
+      expireSession();
+      return Promise.reject(error);
+    }
   }
 );
 

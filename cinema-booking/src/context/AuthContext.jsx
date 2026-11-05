@@ -1,5 +1,6 @@
 import { createContext, useState, useEffect } from 'react';
 import authApi from '../api/authApi';
+import { clearSession, normalizeUser, restoreSession, saveSession } from './authSession';
 
 export const AuthContext = createContext(null);
 
@@ -7,58 +8,25 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Khởi tạo kiểm tra đăng nhập khi mở ứng dụng
   useEffect(() => {
-    const checkAuth = async () => {
-      const token = localStorage.getItem('access_token');
-      if (token) {
-        try {
-          const res = await authApi.getMe();
-          if (res.success && res.data) {
-            setUser(res.data);
-            localStorage.setItem('user_info', JSON.stringify(res.data));
-          }
-        } catch (error) {
-          console.error('Không thể tự động đăng nhập:', error);
-          localStorage.removeItem('access_token');
-          localStorage.removeItem('refresh_token');
-          localStorage.removeItem('user_info');
-          setUser(null);
-        }
-      } else {
-        const savedUser = localStorage.getItem('user_info');
-        if (savedUser) {
-          try {
-            setUser(JSON.parse(savedUser));
-          } catch (e) {
-            localStorage.removeItem('user_info');
-          }
-        }
-      }
-      setLoading(false);
-    };
-    checkAuth();
+    let active = true;
+    restoreSession(localStorage, () => authApi.getMe()).then((restored) => {
+      if (active) { setUser(restored); setLoading(false); }
+    });
+    const expired = () => setUser(null);
+    window.addEventListener('auth:expired', expired);
+    return () => { active = false; window.removeEventListener('auth:expired', expired); };
   }, []);
 
-  // Xử lý lưu thông tin khi đăng nhập thành công
   const handleLoginSuccess = (userData, accessToken, refreshToken) => {
-    if (accessToken) {
-      localStorage.setItem('access_token', accessToken);
-    }
-    if (refreshToken) {
-      localStorage.setItem('refresh_token', refreshToken);
-    }
-    if (userData) {
-      localStorage.setItem('user_info', JSON.stringify(userData));
-      setUser(userData);
-    }
+    setUser(saveSession(localStorage, { user: userData, accessToken, refreshToken }));
   };
 
   // 1. Đăng nhập truyền thống
   const login = async (credentials) => {
     const res = await authApi.login(credentials);
     if (res.success && res.data) {
-      handleLoginSuccess(res.data.user, res.data.token, res.data.refreshToken);
+      handleLoginSuccess(res.data.user, res.data.accessToken ?? res.data.token, res.data.refreshToken);
     }
     return res;
   };
@@ -72,7 +40,7 @@ export const AuthProvider = ({ children }) => {
   const verifyRegistrationOtp = async (data) => {
     const res = await authApi.verifyRegistrationOtp(data);
     if (res.success && res.data) {
-      handleLoginSuccess(res.data.user, res.data.token, res.data.refreshToken);
+      handleLoginSuccess(res.data.user, res.data.accessToken ?? res.data.token, res.data.refreshToken);
     }
     return res;
   };
@@ -81,7 +49,7 @@ export const AuthProvider = ({ children }) => {
   const googleAuth = async (googleData) => {
     const res = await authApi.googleAuth(googleData);
     if (res.success && res.data) {
-      handleLoginSuccess(res.data.user, res.data.token, res.data.refreshToken);
+      handleLoginSuccess(res.data.user, res.data.accessToken ?? res.data.token, res.data.refreshToken);
     }
     return res;
   };
@@ -105,17 +73,15 @@ export const AuthProvider = ({ children }) => {
   const updateProfile = async (data) => {
     const res = await authApi.updateProfile(data);
     if (res.success && res.data) {
-      setUser(res.data);
-      localStorage.setItem('user_info', JSON.stringify(res.data));
+      setUser(normalizeUser(res.data));
+      localStorage.setItem('user_info', JSON.stringify(normalizeUser(res.data)));
     }
     return res;
   };
 
   // 9. Đăng xuất
   const logout = () => {
-    localStorage.removeItem('access_token');
-    localStorage.removeItem('refresh_token');
-    localStorage.removeItem('user_info');
+    clearSession(localStorage);
     setUser(null);
   };
 

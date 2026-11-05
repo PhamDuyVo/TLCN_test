@@ -1,165 +1,43 @@
-import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react';
+import { useEffect, useState } from 'react';
+import { Link, useParams } from 'react-router-dom';
 import movieApi from '../../api/movieApi';
 import showtimeApi from '../../api/showtimeApi';
-import { Calendar, Clock, Film, Play, Ticket, MapPin, Loader2 } from 'lucide-react';
-import { formatDate } from '../../utils/format';
+import { dataOf, errorMessage, safeUrl, serverTime, vietnamDate } from '../../utils/booking';
+import { formatCurrency, formatDate, formatDateTime } from '../../utils/format';
 
-export const MovieDetailPage = () => {
+export default function MovieDetailPage() {
   const { id } = useParams();
-  const navigate = useNavigate();
+  const [date, setDate] = useState(vietnamDate);
   const [movie, setMovie] = useState(null);
-  const [cinemasWithShowtimes, setCinemasWithShowtimes] = useState([]);
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
-  const [activeTab, setActiveTab] = useState('showtimes');
+  const [shows, setShows] = useState([]);
+  const [error, setError] = useState('');
+  const [showError, setShowError] = useState('');
   const [loading, setLoading] = useState(true);
-
+  const [retry, setRetry] = useState(0);
   useEffect(() => {
-    const fetchMovieDetail = async () => {
-      setLoading(true);
-      try {
-        const res = await movieApi.getMovieById(id);
-        if (res.success && res.data) {
-          setMovie(res.data);
-        }
-      } catch (err) {
-        console.error('Lỗi lấy chi tiết phim:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchMovieDetail();
-  }, [id]);
-
+    let active = true;
+    movieApi.getMovieById(id).then(dataOf).then(data => { if (active) { setMovie(data); setError(''); } }).catch(e => { if (active) { setMovie(null); setError(errorMessage(e)); } });
+    return () => { active = false; };
+  }, [id, retry]);
   useEffect(() => {
-    const fetchShowtimes = async () => {
-      try {
-        const res = await showtimeApi.getShowtimesByMovie(id, selectedDate);
-        if (res.success && res.data) {
-          setCinemasWithShowtimes(res.data);
-        }
-      } catch (err) {
-        console.error('Lỗi lấy lịch chiếu:', err);
-      }
-    };
-
-    fetchShowtimes();
-  }, [id, selectedDate]);
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-[#121212] flex items-center justify-center text-zinc-400">
-        <Loader2 className="w-8 h-8 animate-spin text-red-500 mb-2" />
-      </div>
-    );
-  }
-
-  return (
-    <div className="w-full bg-[#121212] py-10">
-      <div className="max-w-7xl mx-auto px-4">
-        {/* 1. Movie Header Banner */}
-        <div className="bg-[#181818] rounded-xl p-6 md:p-8 border border-zinc-800 flex flex-col md:flex-row gap-8 shadow-xl">
-          <div className="w-full md:w-72 aspect-[2/3] rounded-lg overflow-hidden relative shadow-lg bg-zinc-900 flex-shrink-0">
-            <img
-              src={movie?.poster_url || 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=600&auto=format&fit=crop'}
-              alt={movie?.title}
-              className="w-full h-full object-cover"
-            />
-            <div className="absolute top-3 left-3 bg-[#e71a0f] text-white font-black text-xs px-2.5 py-1 rounded shadow">
-              {movie?.age_rating || 'P'}
-            </div>
-          </div>
-
-          <div className="flex-1 flex flex-col justify-between">
-            <div>
-              <div className="flex flex-wrap items-center gap-2 mb-2">
-                <span className="bg-red-950/80 text-red-400 border border-red-800 text-xs font-bold px-2.5 py-0.5 rounded">
-                  {movie?.status === 'now_showing' ? 'ĐANG CHIẾU' : 'SẮP CHIẾU'}
-                </span>
-                <span className="bg-zinc-800 text-zinc-300 text-xs font-bold px-2.5 py-0.5 rounded border border-zinc-700">
-                  {movie?.genre_names || 'Hành Động, Viễn Tưởng'}
-                </span>
-              </div>
-              <h1 className="text-3xl md:text-4xl font-black text-white tracking-wide">
-                {movie?.title || 'AVATAR: DÒNG DÒNG NƯỚC'}
-              </h1>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-y-2 gap-x-6 mt-6 text-xs text-zinc-300 border-y border-zinc-800 py-4">
-                <p><span className="text-zinc-500 font-medium">Đạo diễn:</span> {movie?.director || 'James Cameron'}</p>
-                <p><span className="text-zinc-500 font-medium">Diễn viên:</span> {movie?.cast_names || 'Sam Worthington, Zoe Saldana'}</p>
-                <p><span className="text-zinc-500 font-medium">Thời lượng:</span> {movie?.duration_minutes || 120} phút</p>
-                <p><span className="text-zinc-500 font-medium">Khởi chiếu:</span> {formatDate(movie?.release_date)}</p>
-              </div>
-            </div>
-
-            <div className="mt-6 flex gap-4">
-              <a
-                href="#showtimes-section"
-                className="bg-[#e71a0f] hover:bg-[#c41200] text-white px-6 py-3 rounded-md font-bold text-sm flex items-center gap-2 shadow-lg shadow-red-900/40 transition cursor-pointer"
-              >
-                <Ticket className="w-4 h-4" /> MUA VÉ NGAY
-              </a>
-            </div>
-          </div>
-        </div>
-
-        {/* 2. Ribbon Tab Bar: Suất Chiếu */}
-        <div id="showtimes-section" className="mt-12">
-          <div className="flex border-b border-zinc-800 mb-8">
-            <button
-              onClick={() => setActiveTab('showtimes')}
-              className={`px-8 py-3 font-extrabold text-sm border-b-2 transition cursor-pointer ${
-                activeTab === 'showtimes'
-                  ? 'border-[#e71a0f] text-[#e71a0f]'
-                  : 'border-transparent text-zinc-400 hover:text-white'
-              }`}
-            >
-              LỊCH CHIẾU THỰC TẾ (MYSQL DB)
-            </button>
-          </div>
-
-          <div className="bg-[#181818] rounded-xl p-6 border border-zinc-800">
-            {/* Cinema List from DB */}
-            {cinemasWithShowtimes.length > 0 ? (
-              cinemasWithShowtimes.map((cinema) => (
-                <div key={cinema.cinema_id} className="bg-zinc-900/60 p-5 rounded-lg border border-zinc-800 mb-4">
-                  <div className="flex items-center justify-between border-b border-zinc-800 pb-3 mb-4">
-                    <h4 className="font-bold text-white text-base">{cinema.cinema_name}</h4>
-                    <span className="text-xs text-zinc-400">{cinema.cinema_address}</span>
-                  </div>
-
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
-                    {cinema.showtimes.map((st) => (
-                      <button
-                        key={st.showtime_id}
-                        onClick={() => navigate(`/booking/${st.showtime_id}`)}
-                        className="bg-zinc-900 hover:bg-[#e71a0f] text-zinc-200 hover:text-white border border-zinc-700 hover:border-[#e71a0f] p-3 rounded-lg flex flex-col items-center justify-center gap-1 transition duration-200 group cursor-pointer shadow-sm"
-                      >
-                        <span className="text-base font-black text-white group-hover:scale-105 transition">
-                          {new Date(st.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                        </span>
-                        <span className="text-[11px] text-zinc-400 group-hover:text-red-100">
-                          {st.room_name} ({st.screen_format})
-                        </span>
-                        <span className="text-[10px] text-amber-400 group-hover:text-white font-semibold mt-1">
-                          {Number(st.base_price).toLocaleString()} ₫
-                        </span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              ))
-            ) : (
-              <div className="text-center py-8 text-zinc-500">
-                Chưa có suất chiếu cho phim này trong CSDL.
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-export default MovieDetailPage;
+    let active = true;
+    showtimeApi.getShowtimesByMovie(id, date).then(dataOf).then(data => { if (active) { setShows(data); setShowError(''); } }).catch(e => { if (active) { setShows([]); setShowError(errorMessage(e)); } }).finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
+  }, [id, date, retry]);
+  const groups = Object.values(shows.reduce((all, show) => { (all[show.cinemaId] ||= { name: show.cinemaName, shows: [] }).shows.push(show); return all; }, {}));
+  return <main className="bg-[#121212] min-h-screen text-zinc-100 py-10"><div className="max-w-7xl mx-auto px-4">
+    {error && <p role="alert" className="text-red-400">{error} <button onClick={() => setRetry(v => v + 1)} className="underline">Thử lại</button></p>}
+    {!movie && !error && <p role="status">Đang tải phim…</p>}
+    {movie && <section className="bg-[#181818] rounded-xl border border-zinc-800 p-8 flex flex-col md:flex-row gap-8">
+      <div className="w-64 aspect-[2/3] bg-zinc-900 shrink-0">{safeUrl(movie.posterUrl) && <img src={safeUrl(movie.posterUrl)} alt={movie.title} className="w-full h-full object-cover rounded-lg" />}</div>
+      <div><p className="text-red-400">{movie.ageRating} · {movie.genres?.join(', ')}</p><h1 className="text-4xl font-black mt-3">{movie.title}</h1><div className="text-sm text-zinc-400 space-y-2 my-6"><p>Đạo diễn: {movie.director || 'Chưa cập nhật'}</p><p>Diễn viên: {movie.cast || 'Chưa cập nhật'}</p><p>{movie.durationMinutes} phút · Khởi chiếu {formatDate(movie.releaseDate)}</p></div><p className="text-zinc-300 whitespace-pre-line">{movie.description}</p>{safeUrl(movie.trailerUrl) && <a href={safeUrl(movie.trailerUrl)} target="_blank" rel="noreferrer" className="inline-block border border-red-700 rounded-lg px-5 py-3 mt-5">Xem trailer</a>}</div>
+    </section>}
+    <section className="mt-10"><h2 className="text-xl font-bold mb-5">LỊCH CHIẾU</h2><label className="text-zinc-400">Ngày chiếu <input type="date" value={date} min={vietnamDate()} onChange={e => { if (e.target.value) { setDate(e.target.value); setLoading(true); } }} className="bg-zinc-900 border border-zinc-700 rounded p-3 ml-3 text-white" /></label>
+      {loading ? <p className="mt-6" role="status">Đang tải lịch chiếu…</p> : showError ? <p role="alert" className="text-red-400 mt-6">{showError} <button onClick={() => setRetry(v => v + 1)}>Thử lại</button></p> : !groups.length ? <p className="text-zinc-400 py-8">Chưa có suất chiếu trong ngày này.</p> : groups.map(group => <div key={group.name} className="bg-[#181818] rounded-xl border border-zinc-800 p-6 mt-6"><h3 className="font-bold mb-4">{group.name}</h3><div className="flex flex-wrap gap-3">{group.shows.map(show => {
+        const past = serverTime(show.startTime) <= Date.now() || ['CANCELLED', 'COMPLETED'].includes(show.status?.toUpperCase());
+        const content = <><span>{formatDateTime(show.startTime)}</span><span className="text-xs text-zinc-400">{show.hallName} · {show.screenType}</span><span className="text-amber-400">{formatCurrency(show.basePrice)}</span></>;
+        return past ? <div key={show.id} className="p-3 border border-zinc-800 rounded-lg flex flex-col opacity-40">{content}<span>Không khả dụng</span></div> : <Link key={show.id} to={`/booking/${show.id}`} className="p-3 border border-zinc-700 hover:border-red-500 rounded-lg flex flex-col gap-1">{content}</Link>;
+      })}</div></div>)}
+    </section>
+  </div></main>;
+}
